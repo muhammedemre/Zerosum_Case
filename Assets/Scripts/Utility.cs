@@ -15,6 +15,11 @@ public static class Utility
 		 *	Perform a raycast using the ray provided, only to objects of the specified 'layer' within 'maxDistance' and return if something is hit. 
 		 */
 
+		RaycastHit hit;
+		if (Physics.Raycast(ray, out hit, Mathf.Infinity, layer))
+		{
+			return true; // return  hit.transform
+		}
 		return false;
 	}
 
@@ -27,6 +32,8 @@ public static class Utility
 		 * Is there a known algorithm that achieves this?
 		 */
 
+		// Answer: poisson-disc sampling is the algorithm that could help our problem, I'm sorry but I was kinda busy + lazy ^^ to implement it. Here is the resources that I would get help 
+		// if I would implement it: https://github.com/SebLague/Poisson-Disc-Sampling/blob/master/Poisson%20Disc%20Sampling%20E01/PoissonDiscSampling.cs
 		return null;
 	}
 
@@ -37,9 +44,25 @@ public static class Utility
 		 * Create a Texture2D object of specified 'width' and 'height', fill it with 'color' and return it. Do it as performant as possible.
 		 */
 
-		return null;
+		Texture2D texture2dObject = new Texture2D(50, 50);
+		int mipCount = Mathf.Min(3, texture2dObject.mipmapCount);
+		Color[] colors = new Color[1];
+		colors[0] = color;
+		// tint each mip level
+		for (int mip = 0; mip < mipCount; ++mip)
+		{
+			Color[] cols = texture2dObject.GetPixels(mip);
+			for (int i = 0; i < cols.Length; ++i)
+			{
+				cols[i] = Color.Lerp(cols[i], colors[mip], 0.33f);
+			}
+			texture2dObject.SetPixels(cols, mip);
+		}
+		texture2dObject.Apply(false);
+		return texture2dObject;
 	}
 
+	[MenuItem("GameObject / Select All Active")]
 	public static void SelectAllActiveGameObjects()
 	{
 		/*
@@ -47,5 +70,6 @@ public static class Utility
 		 * Do it in a single line.
 		 * It should be called through the Unity toolbar menu item "GameObject/Select All Active".
 		 */
+		GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>().Where(gameObject => gameObject.activeSelf).ToArray();
 	}
 }
